@@ -1,45 +1,62 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import Dashboard from './DashBoard'
-import {BrowserRouter as Router,Routes,Route} from "react-router-dom";
-import { AuthProvider } from './AuthContext'
 
-import Home from './pages/Home'
-import About from './pages/About'
-import Contact from './pages/Contact'
-import Navbar from "./pages/Navbar"
-import LoginPage from "./pages/LoginPage"
-import PrivateRoute from "./pages/PrivateRoute"
 
-//monaco editor
-import MonacoEditorComponent from "./pages/MonacoEditor";
+import { useState, useEffect } from "react";
+import { Route, Routes, useNavigate } from "react-router-dom";
+import Header from "./components/common/Header";
+import Sidebar from "./components/common/Sidebar";
+import MyChart from "./pages/Chart";
+import UsersPage from "./pages/UsersPage";
+import AudioTranscriptionRecorder from "./pages/mic";
+import HistoryPage from "./pages/History";
+import SignIn from "./pages/Login";
+import CodeEditor from "./pages/editor";
+import ChartsPage from "./pages/DashBoard";
+import DynamicTable from "./pages/Data";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is already logged in (Persist login state)
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    } else {
+      navigate("/signin"); // Redirect to login page if not logged in
+    }
+  }, [navigate]);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData)); // Persist login
+    navigate("/products"); // Redirect to products page after login
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem("user");
+    navigate("/signin"); // Redirect to login page after logout
+  };
 
   return (
-    <>
-     <MonacoEditorComponent />
-<AuthProvider>
-<Router>
-  <Navbar/>
-  <Routes>
-    <Route path="/" element={<Home/>}></Route>
-    <Route path="/about" element={<About/>}></Route>
-    <Route path="/contact" element={<Contact/>}></Route>
-    <Route path="/login" element={<LoginPage/>}/>
-    <Route path="/dashboard" element={
-      <PrivateRoute>
-        <Dashboard/>
-      </PrivateRoute>
-      }/>
-  </Routes>
-</Router>
-</AuthProvider>
-    </>
-  )
+    <div className='flex h-screen bg-gray-900 text-gray-100 overflow-hidden'>
+			{/* BG */}
+			
+			<Sidebar />
+	  
+      <Routes>
+		<Route path="/login" element={<SignIn/>}></Route>
+		  <Route path="/" element={<ChartsPage/>}></Route>
+		  <Route path="/data" element={<DynamicTable/>}/>
+           <Route path="/editor" element={<CodeEditor/>}></Route>
+            <Route path="/voice" element={<AudioTranscriptionRecorder/>}/>
+            <Route path='/users' element={<UsersPage />} />
+            <Route path="/charts" element={<MyChart />} />
+            <Route path="/history" element={<HistoryPage/>}/>
+      </Routes>
+    </div>
+  );
 }
 
-export default App
+export default App;
